@@ -1,6 +1,7 @@
 const path = require('path');
 const express = require('express');
 
+const {generateMessage} = require('./utils/message');
 const publicPath = path.join(__dirname, '../public');
 const port = process.env.PORT || 3000;
 
@@ -15,35 +16,15 @@ io.on('connection', (socket) => {
     console.log('new user connected');
 
     // EMIT ONLY TO THE CONNECTED SOCKET
-    socket.emit('newMessage', {
-        from: 'Admin',
-        text: 'Welcome to the chat app',
-        createdAt: new Date().getTime()
-    });
+    socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
 
     //EMIT TO EVERYONE EXCEPT THE CONNECTED SOCKET
-    socket.broadcast.emit('newMessage', {
-        from: 'Admin',
-        text: 'a new user has joined the chat',
-        createdAt: new Date().getTime()
-    });
+    socket.broadcast.emit('newMessage', generateMessage('Admin', 'a new user has joined the chat'));
     
     //FROM CLIENT TO SERVER
     socket.on('createMessage', (message) => {
         console.log(message);
-        io.emit('newMessage', {
-            from: message.from,
-            text: message.text,
-            createdAt: new Date().getTime()
-        });
-
-        // SEND TO EVERYBODY BUT NOT THIS SOCKET
-        // socket.broadcast.emit('newMessage', {
-        //     from: message.from,
-        //     text: message.text,
-        //     createdAt: new Date().getTime()
-        // });
-
+        io.emit('newMessage', generateMessage(message.from, message.text));
     });
 
     socket.on('disconnect', () => {
